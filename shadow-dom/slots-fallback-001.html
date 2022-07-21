@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" >
+<meta name="author" title="Di Zhang" href="mailto:dizhangg@chromium.org">
+<meta name="assert" content="Slots fallback: child node in host are default assigned to unnamed slot">
+<title>Shadow DOM: Slots and fallback contents</title>
+<link rel="match" href="reference/slots-fallback-001-ref.html">
+</head>
+<body>
+<p>Test passes if see two lines of text "A", "B" below.</p>
+
+<div id="host"><slot id="slot1">FAIL</slot></div>
+
+<script>
+// Both divs overwrite fallback contents of default slot
+const shadowRoot = window.host.attachShadow({ mode: "open" });
+shadowRoot.appendChild(window.slot1);
+const A = document.createElement('div');
+A.innerText = 'A';
+window.host.appendChild(A);
+const B = document.createElement('div');
+B.innerText = 'B';
+window.host.appendChild(B);
+
+</script>
+</body>
+</html>

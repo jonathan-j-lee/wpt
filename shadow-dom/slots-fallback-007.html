@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" >
+<meta name="author" title="Di Zhang" href="mailto:dizhangg@chromium.org">
+<meta name="assert" content="Slots fallback: Basics">
+<title>Shadow DOM: Slots and fallback contents</title>
+<link rel="match" href="reference/slots-fallback-007-ref.html">
+</head>
+<body>
+<p>Test passes if matches reference.</p>
+
+<div id="host">FAIL
+  <slot id="slot1" name="slot1">FAIL</slot>
+  <slot id="slot2" name="slot2">SLOT2</slot>
+  <slot id="slot3" name="slot3"></slot>
+  <slot id="slot4" name="slot4"></slot>
+
+  <div id="A">FAIL</div>
+  <div id="B" slot="slot1">B</div>
+  <div id="C" slot="slot3">C</div>
+  <div id="D" slot="slot-DNE">FAIL</div>
+  <div id="E" slot="slot1">E</div>
+  <div id="F">FAIL</div>
+</div>
+
+<script>
+const shadowRoot = window.host.attachShadow({ mode: "open" });
+shadowRoot.appendChild(window.slot1);
+shadowRoot.appendChild(window.slot2);
+shadowRoot.appendChild(window.slot3);
+shadowRoot.appendChild(window.slot4);
+
+</script>
+</body>
+</html>

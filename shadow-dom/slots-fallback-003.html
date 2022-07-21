@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" >
+<meta name="author" title="Di Zhang" href="mailto:dizhangg@chromium.org">
+<meta name="assert" content="Slots fallback: modify slot fallback contents">
+<title>Shadow DOM: Slots and fallback contents</title>
+<link rel="match" href="reference/slots-fallback-003-ref.html">
+</head>
+<body>
+<p>Test passes if matches reference.</p>
+
+<div id="host1"><slot id="slot1">SLOT1</slot></div>
+
+<hr>
+
+<div id="host2"><slot id="slot2">
+  <div id="B">FAIL</div>
+  <div id="C">C</div>
+</slot></div>
+
+<hr>
+
+<div id="host3"><slot id="slot3"><div id="D">FAIL</div></slot></div>
+
+<script>
+// Add to existing fallback will append to existing fallback content
+const shadowRoot1 = window.host1.attachShadow({ mode: "open" });
+shadowRoot1.appendChild(window.slot1);
+const A = document.createElement('div');
+A.innerText = 'A';
+shadowRoot1.getElementById('slot1').appendChild(A);
+
+// Remove one div from existing slot fallback will show the leftover fallback
+const shadowRoot2 = window.host2.attachShadow({ mode: "open" });
+shadowRoot2.appendChild(window.slot2);
+const B = shadowRoot2.getElementById('B');
+B.remove();
+
+// // Remove only div from existing slot will show no fallback
+const shadowRoot3 = window.host3.attachShadow({ mode: "open" });
+shadowRoot3.appendChild(window.slot3);
+const D = shadowRoot3.getElementById('D');
+D.remove();
+
+</script>
+</body>
+</html>

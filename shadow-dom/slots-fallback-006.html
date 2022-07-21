@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" >
+<meta name="author" title="Di Zhang" href="mailto:dizhangg@chromium.org">
+<meta name="assert" content="Slots fallback: imperatively assigned node overwrites fallback contents">
+<title>Shadow DOM: Slots and fallback contents</title>
+<link rel="match" href="reference/slots-fallback-006-ref.html">
+</head>
+<body>
+<p>Test passes if see two lines of text "B", "A" below.</p>
+
+<div id="host"><slot id="slot1" name="slot1">FAIL</slot></div>
+
+<script>
+const shadowRoot = window.host.attachShadow({ mode: "open", slotAssignment: 'manual' });
+shadowRoot.appendChild(window.slot1);
+const slot1 = shadowRoot.getElementById('slot1');
+const A = document.createElement('div');
+A.innerText = 'A';
+const B = document.createElement('div');
+B.innerText = 'B';
+slot1.assign(B, A);
+window.host.append(A, B);
+
+</script>
+</body>
+</html>
