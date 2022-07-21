@@ -46,4 +46,39 @@ promise_test(async t => {
   await promise_rejects_dom(t, 'InvalidStateError', iframeDOMException, iframeNavigator.subApps.add(subapp));
 }, "API is only supported in top-level browsing contexts.");
 
+promise_test(async t => {
+  const wrong_origin_url = 'https://some.other.origin/sub-app';
+  let subapp = {};
+  let install_options = {};
+  install_options["install_url"] = wrong_origin_url;
+  subapp[wrong_origin_url] = install_options;
+  await promise_rejects_dom(t, 'URLMismatchError', navigator.subApps.add(subapp));
+}, 'Wrong origin URL argument.');
+
+promise_test(async t => {
+  const app_id = "mock-app-id";
+  const same_origin_url = document.location.origin + '/sub-app';
+  let subapp = {};
+  let install_options = {};
+  install_options["install_url"] = same_origin_url;
+  subapp[same_origin_url] = install_options;
+  let expected_results = {app_id: "expected-app-id-check-failed"};
+
+  t.add_cleanup(async () => {
+      await mockSubAppsService.reset();
+      mockSubAppsService = null;
+  });
+
+  await createMockSubAppsService(Status.FAILURE);
+
+  navigator.subApps.add(subapp)
+    .then(result => {
+      assert_unreached("Should have rejected.");
+    })
+    .catch(result => {
+      assert_own_property(result, app_id, "Return results are missing entry for subapp.")
+      assert_equals(result[app_id], expected_results[app_id], "Return results are not the same.")
+    });
+
+}, 'Service failed to add sub-app.');
 </script>
