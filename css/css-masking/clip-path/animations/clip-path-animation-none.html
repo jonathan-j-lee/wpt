@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html class="reftest-wait">
+<link rel="help" href="https://drafts.csswg.org/css-shapes-1/#basic-shape-interpolation">
+<link rel="match" href="clip-path-animation-none-ref.html">
+<style>
+  @keyframes clippath {
+    0% {
+      clip-path: inset(25% 25%);
+    }
+
+    100% {
+      clip-path: none;
+    }
+  }
+
+  .target {
+    animation: clippath 100000s infinite -50000s;
+    background-color: blue;
+    width: 100px;
+    height: 100px;
+  }
+</style>
+<script src="/common/reftest-wait.js"></script>
+
+<body>
+  <div class="target"></div>
+  <script>
+    document.getAnimations()[0].ready.then(() => {
+      takeScreenshot();
+    });
+  </script>
+</body>
+
+</html>
