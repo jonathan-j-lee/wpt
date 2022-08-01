@@ -1,5 +1,6 @@
 # mypy: allow-untyped-defs
 
+import textwrap
 import unittest
 
 from .. import parser

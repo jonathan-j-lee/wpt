@@ -12,7 +12,6 @@
 #      PASS
 #
 
-# TODO: keep comments in the tree
 
 from io import BytesIO
 
@@ -59,7 +58,20 @@ def precedence(operator_node):
 
 class TokenTypes:
     def __init__(self) -> None:
-        for type in ["group_start", "group_end", "paren", "list_start", "list_end", "separator", "ident", "string", "number", "atom", "eof"]:
+        for type in [
+            "group_start",
+            "group_end",
+            "paren",
+            "list_start",
+            "list_end",
+            "separator",
+            "ident",
+            "string",
+            "number",
+            "atom",
+            "comment",
+            "eof",
+        ]:
             setattr(self, type, type)
 
 token_types = TokenTypes()
@@ -153,6 +165,8 @@ class Tokenizer:
             yield (token_types.paren, self.char())
             self.consume()
             self.state = self.heading_state
+        elif self.char() == "#":
+            self.state = self.comment_state
         else:
             self.state = self.key_state
 
@@ -353,8 +367,11 @@ class Tokenizer:
         yield (token_types.string, rv)
 
     def comment_state(self):
+        comment = ''
         while self.char() is not eol:
+            comment += self.char()
             self.consume()
+        yield (token_types.comment, comment)
         self.state = self.eol_state
 
     def line_end_state(self):
