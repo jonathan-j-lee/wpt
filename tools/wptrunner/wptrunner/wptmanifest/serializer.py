@@ -40,6 +40,12 @@ class ManifestSerializer(NodeVisitor):
             rv = rv + "\n"
         return rv
 
+    def visit(self, node):
+        lines = super().visit(node)
+        if len(node.comments) == 1 and len(lines) == 1:
+            return [lines[0] + '  ' + node.comments[0]]
+        return node.comments + lines
+
     def visit_DataNode(self, node):
         rv = []
         if not self.skip_empty_data or node.children:

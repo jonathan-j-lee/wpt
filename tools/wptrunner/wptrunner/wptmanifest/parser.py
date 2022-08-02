@@ -13,11 +13,12 @@
 #
 
 
+import collections
 from io import BytesIO
 
 from .node import (Node, AtomNode, BinaryExpressionNode, BinaryOperatorNode,
                    ConditionalNode, DataNode, IndexNode, KeyValueNode, ListNode,
-                   NumberNode, StringNode, UnaryExpressionNode, CommentNode,
+                   NumberNode, StringNode, UnaryExpressionNode,
                    UnaryOperatorNode, ValueNode, VariableNode)
 
 
@@ -168,8 +169,6 @@ class Tokenizer:
             yield (token_types.paren, self.char())
             self.consume()
             self.state = self.heading_state
-        elif self.char() == "#":
-            self.state = self.comment_state
         else:
             self.state = self.key_state
 
@@ -564,8 +563,6 @@ class Parser:
     def consume(self):
         self.token = next(self.token_generator)
         while self.token[0] == token_types.comment:
-            print(self.token)
-            pass
             self.token = next(self.token_generator)
 
     def expect(self, type, value=None):
