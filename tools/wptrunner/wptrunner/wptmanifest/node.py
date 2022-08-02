@@ -170,3 +170,8 @@ class StringNode(Node):
 
 class NumberNode(ValueNode):
     pass
+
+
+class CommentNode(Node):
+    def append(self, other):
+        raise TypeError

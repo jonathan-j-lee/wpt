@@ -17,7 +17,7 @@ from io import BytesIO
 
 from .node import (Node, AtomNode, BinaryExpressionNode, BinaryOperatorNode,
                    ConditionalNode, DataNode, IndexNode, KeyValueNode, ListNode,
-                   NumberNode, StringNode, UnaryExpressionNode,
+                   NumberNode, StringNode, UnaryExpressionNode, CommentNode,
                    UnaryOperatorNode, ValueNode, VariableNode)
 
 
@@ -158,7 +158,10 @@ class Tokenizer:
             if self.index != self.indent_levels[-1]:
                 raise ParseError(self.filename, self.line_number, "Unexpected indent")
 
-        self.state = self.next_state
+        if self.char() == "#":
+            self.state = self.comment_state
+        else:
+            self.state = self.next_state
 
     def data_line_state(self):
         if self.char() == "[":
@@ -322,10 +325,7 @@ class Tokenizer:
             quote_char = self.char()
             self.consume()
             yield (token_types.string, self.consume_string(quote_char))
-            if self.char() == "#":
-                self.state = self.comment_state
-            else:
-                self.state = self.line_end_state
+            self.state = self.line_end_state
         elif c == "@":
             self.consume()
             for _, value in self.value_inner_state():
@@ -563,6 +563,10 @@ class Parser:
 
     def consume(self):
         self.token = next(self.token_generator)
+        while self.token[0] == token_types.comment:
+            print(self.token)
+            pass
+            self.token = next(self.token_generator)
 
     def expect(self, type, value=None):
         if self.token[0] != type:
@@ -580,25 +584,25 @@ class Parser:
         self.expect(token_types.eof)
 
     def data_block(self):
-        while self.token[0] == token_types.string:
-            self.tree.append(KeyValueNode(self.token[1]))
-            self.consume()
-            self.expect(token_types.separator)
-            self.value_block()
-            self.tree.pop()
-
-        while self.token == (token_types.paren, "["):
-            self.consume()
-            if self.token[0] != token_types.string:
-                raise ParseError(self.tokenizer.filename, self.tokenizer.line_number,
-                                 f"Token '{self.token[0]}' is not a string")
-            self.tree.append(DataNode(self.token[1]))
-            self.consume()
-            self.expect(token_types.paren, "]")
-            if self.token[0] == token_types.group_start:
+        while self.token[0] in {token_types.string, token_types.paren}:
+            if self.token[0] == token_types.string:
+                self.tree.append(KeyValueNode(self.token[1]))
                 self.consume()
-                self.data_block()
-                self.eof_or_end_group()
+                self.expect(token_types.separator)
+                self.value_block()
+            else:
+                self.expect(token_types.paren, "[")
+                if self.token[0] != token_types.string:
+                    raise ParseError(self.tokenizer.filename,
+                                     self.tokenizer.line_number,
+                                     f"Token '{self.token[0]}' is not a string")
+                self.tree.append(DataNode(self.token[1]))
+                self.consume()
+                self.expect(token_types.paren, "]")
+                if self.token[0] == token_types.group_start:
+                    self.consume()
+                    self.data_block()
+                    self.eof_or_end_group()
             self.tree.pop()
 
     def eof_or_end_group(self):

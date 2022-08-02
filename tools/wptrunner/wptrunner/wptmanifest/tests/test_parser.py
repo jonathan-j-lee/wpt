@@ -112,7 +112,8 @@ key:
         self.compare(
             b"""
 key:
-  if x == 1: [a]
+  if x == 1: [a]  # testing
+  # testing 2
   [b]""",
             ["DataNode", None,
              [["KeyValueNode", "key",
