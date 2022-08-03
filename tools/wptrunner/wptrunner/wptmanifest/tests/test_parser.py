@@ -1,6 +1,5 @@
 # mypy: allow-untyped-defs
 
-import textwrap
 import unittest
 
 from .. import parser
@@ -112,8 +111,7 @@ key:
         self.compare(
             b"""
 key:
-  if x == 1: [a]  # testing
-  # testing 2
+  if x == 1: [a]
   [b]""",
             ["DataNode", None,
              [["KeyValueNode", "key",

@@ -13,7 +13,6 @@
 #
 
 
-import collections
 from io import BytesIO
 
 from .node import (Node, AtomNode, BinaryExpressionNode, BinaryOperatorNode,
@@ -573,16 +572,16 @@ class Parser:
 
     def maybe_consume_comment(self):
         if self.token[0] == token_types.inline_comment:
-            self.comments.append(self.token[1])
+            self.comments.append(self.token)
             self.consume()
 
     def consume_comments(self):
         while self.token[0] == token_types.comment:
-            self.comments.append(self.token[1])
+            self.comments.append(self.token)
             self.consume()
 
-    def flush_comments(self):
-        self.tree.node.comments.extend(self.comments)
+    def flush_comments(self, node=None):
+        (node or self.tree.node).comments.extend(self.comments)
         self.comments.clear()
 
     def manifest(self):
@@ -631,13 +630,16 @@ class Parser:
         elif self.token[0] == token_types.group_start:
             self.consume()
             self.expression_values()
+            default_node = None
             if self.token[0] == token_types.string:
                 self.value()
+                default_node = self.tree.node.children[-1]
             elif self.token[0] == token_types.list_start:
                 self.consume()
                 self.list_value()
+                default_node = self.tree.node.children[-1]
             self.consume_comments()
-            self.flush_comments()
+            self.flush_comments(default_node)
             self.eof_or_end_group()
         elif self.token[0] == token_types.atom:
             self.atom()

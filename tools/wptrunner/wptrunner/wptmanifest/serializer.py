@@ -3,7 +3,7 @@
 from six import ensure_text
 
 from .node import NodeVisitor, ValueNode, ListNode, BinaryExpressionNode
-from .parser import atoms, precedence
+from .parser import atoms, precedence, token_types
 
 atom_names = {v: "@%s" % k for (k,v) in atoms.items()}
 
@@ -42,9 +42,16 @@ class ManifestSerializer(NodeVisitor):
 
     def visit(self, node):
         lines = super().visit(node)
-        if len(node.comments) == 1 and len(lines) == 1:
-            return [lines[0] + '  ' + node.comments[0]]
-        return node.comments + lines
+        comments, maybe_inline_comment = [], None
+        for token_type, comment in node.comments:
+            if "#" not in lines[0] and token_type == token_types.inline_comment and not maybe_inline_comment:
+                maybe_inline_comment = comment
+            else:
+                assert token_type in {token_types.inline_comment, token_types.comment}
+                comments.append(comment)
+        if maybe_inline_comment:
+            lines[0] += " " * 2 + maybe_inline_comment
+        return comments + lines
 
     def visit_DataNode(self, node):
         rv = []
@@ -71,7 +78,7 @@ class ManifestSerializer(NodeVisitor):
             rv[0] += " %s" % self.visit(node.children[0])[0]
         else:
             for child in node.children:
-                rv.append(indent + self.visit(child)[0])
+                rv.extend(indent + line for line in self.visit(child))
 
         return rv
 
