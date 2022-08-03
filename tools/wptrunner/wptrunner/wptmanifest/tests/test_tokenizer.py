@@ -56,7 +56,7 @@ class TokenizerTest(unittest.TestCase):
                      [(token_types.paren, "["),
                       (token_types.string, "Heading []text"),
                       (token_types.paren, "]"),
-                      (token_types.comment, "#comment")])
+                      (token_types.inline_comment, "#comment")])
 
     def test_heading_6(self):
         self.compare(br"""[Heading \ttext]""",
@@ -87,7 +87,7 @@ class TokenizerTest(unittest.TestCase):
                      [(token_types.string, "key"),
                       (token_types.separator, ":"),
                       (token_types.string, "value"),
-                      (token_types.comment, "#comment")])
+                      (token_types.inline_comment, "#comment")])
 
     def test_key_4(self):
         with self.assertRaises(parser.ParseError):
@@ -180,7 +180,7 @@ key: [a, #b]
              (token_types.separator, ":"),
              (token_types.list_start, "["),
              (token_types.string, "a"),
-             (token_types.comment, "#b]"),
+             (token_types.inline_comment, "#b]"),
              (token_types.string, "c"),
              (token_types.list_end, "]")])
 
@@ -358,7 +358,7 @@ key:
             [(token_types.paren, "["),
              (token_types.string, "Heading"),
              (token_types.paren, "]"),
-             (token_types.comment, "# inline"),
+             (token_types.inline_comment, "# inline"),
              (token_types.group_start, None),
              (token_types.comment, "# indent 1"),
              (token_types.group_end, None),
@@ -374,15 +374,15 @@ key:
                 """).encode(),
             [(token_types.string, "key"),
              (token_types.separator, ":"),
-             (token_types.comment, "# after key"),
+             (token_types.inline_comment, "# after key"),
              (token_types.group_start, None),
              (token_types.ident, "if"),
              (token_types.ident, "cond"),
              (token_types.separator, ":"),
              (token_types.string, "value1"),
-             (token_types.comment, "# after value1"),
+             (token_types.inline_comment, "# after value1"),
              (token_types.string, "value2"),
-             (token_types.comment, "# after value2")])
+             (token_types.inline_comment, "# after value2")])
 
 
 if __name__ == "__main__":
