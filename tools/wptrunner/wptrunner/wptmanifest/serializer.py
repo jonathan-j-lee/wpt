@@ -42,15 +42,15 @@ class ManifestSerializer(NodeVisitor):
 
     def visit(self, node):
         lines = super().visit(node)
-        comments, maybe_inline_comment = [], None
-        for token_type, comment in node.comments:
-            if "#" not in lines[0] and token_type == token_types.inline_comment and not maybe_inline_comment:
-                maybe_inline_comment = comment
-            else:
-                assert token_type in {token_types.inline_comment, token_types.comment}
-                comments.append(comment)
-        if maybe_inline_comment:
-            lines[0] += " " * 2 + maybe_inline_comment
+        comments = [f"#{comment}" for _, comment in node.comments]
+        # Simply checking if the first line contains '#' is less than ideal; the
+        # character might be escaped or within a string.
+        if lines and "#" not in lines[0]:
+            for i, (token_type, comment) in enumerate(node.comments):
+                if token_type == token_types.inline_comment:
+                    lines[0] += " " * 2 + f"#{comment}"
+                    comments.pop(i)
+                    break
         return comments + lines
 
     def visit_DataNode(self, node):

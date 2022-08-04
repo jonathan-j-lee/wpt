@@ -69,6 +69,15 @@ class TokenTypes:
             "string",
             "number",
             "atom",
+            # Without an end-of-line token type, we need two different comment
+            # token types to distinguish between:
+            #   [heading1]  # Comment attached to heading 1
+            #   [heading2]
+            #
+            # and
+            #   [heading1]
+            #   # Comment attached to heading 2
+            #   [heading2]
             "comment",
             "inline_comment",
             "eof",
@@ -354,6 +363,8 @@ class Tokenizer:
         yield (token_types.string, rv)
 
     def _consume_comment(self):
+        assert self.char() == "#"
+        self.consume()
         comment = ''
         while self.char() is not eol:
             comment += self.char()
@@ -570,7 +581,7 @@ class Parser:
 
         self.consume()
 
-    def maybe_consume_comment(self):
+    def maybe_consume_inline_comment(self):
         if self.token[0] == token_types.inline_comment:
             self.comments.append(self.token)
             self.consume()
@@ -589,16 +600,18 @@ class Parser:
         self.expect(token_types.eof)
 
     def data_block(self):
-        while self.token[0] in {token_types.comment, token_types.string, token_types.paren}:
+        while self.token[0] in {token_types.comment, token_types.string,
+                                token_types.paren}:
             if self.token[0] == token_types.comment:
                 self.consume_comments()
             elif self.token[0] == token_types.string:
                 self.tree.append(KeyValueNode(self.token[1]))
                 self.consume()
                 self.expect(token_types.separator)
-                self.maybe_consume_comment()
+                self.maybe_consume_inline_comment()
                 self.flush_comments()
                 self.value_block()
+                self.flush_comments()
                 self.tree.pop()
             else:
                 self.expect(token_types.paren, "[")
@@ -609,7 +622,7 @@ class Parser:
                 self.tree.append(DataNode(self.token[1]))
                 self.consume()
                 self.expect(token_types.paren, "]")
-                self.maybe_consume_comment()
+                self.maybe_consume_inline_comment()
                 self.flush_comments()
                 if self.token[0] == token_types.group_start:
                     self.consume()
@@ -646,7 +659,6 @@ class Parser:
         else:
             raise ParseError(self.tokenizer.filename, self.tokenizer.line_number,
                              f"Token '{self.token[0]}' is not a known type")
-        self.flush_comments()
 
     def list_value(self):
         self.tree.append(ListNode())
@@ -656,7 +668,7 @@ class Parser:
             else:
                 self.value()
         self.expect(token_types.list_end)
-        self.maybe_consume_comment()
+        self.maybe_consume_inline_comment()
         self.tree.pop()
 
     def expression_values(self):
@@ -674,7 +686,7 @@ class Parser:
     def value(self):
         self.tree.append(ValueNode(self.token[1]))
         self.consume()
-        self.maybe_consume_comment()
+        self.maybe_consume_inline_comment()
         self.tree.pop()
 
     def atom(self):
@@ -682,7 +694,7 @@ class Parser:
             raise ParseError(self.tokenizer.filename, self.tokenizer.line_number, "Unrecognised symbol @%s" % self.token[1])
         self.tree.append(AtomNode(atoms[self.token[1]]))
         self.consume()
-        self.maybe_consume_comment()
+        self.maybe_consume_inline_comment()
         self.tree.pop()
 
     def expr_start(self):
