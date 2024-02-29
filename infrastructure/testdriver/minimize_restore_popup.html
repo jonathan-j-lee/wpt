@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>TestDriver minimize/restore method in popup</title>
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<script src="/resources/testdriver.js"></script>
+<script src="/resources/testdriver-vendor.js"></script>
+
+<script>
+const params = new URLSearchParams(location.search);
+const is_popup_page = params.has("popup");
+
+if (!is_popup_page) {
+  promise_test(async t => {
+    onload = () => {
+      window.events = [];
+      let popup = window.open("?popup");
+      t.add_cleanup(() => popup.close());
+      popup.onload = async () => {
+        popup.document.addEventListener('visibilitychange', () => {
+          console.log(`popup became ${popup.document.visibilityState}`);
+        });
+        console.log('popup opened');
+        window.events.push(popup.document.visibilityState);
+        let rect = await test_driver.minimize_window(popup);
+        window.events.push(popup.document.visibilityState);
+        await test_driver.set_window_rect(rect, popup);
+        window.events.push(popup.document.visibilityState);
+        window.postMessage("done");
+      };
+    };
+
+    document.addEventListener('visibilitychange', () => {
+      console.log(`opener became ${document.visibilityState}`);
+    });
+
+    await new Promise(resolve => {
+      window.addEventListener(
+        "message", (e) => {
+          if (e.data === "done") {
+            resolve();
+          }
+        });
+    });
+
+    const expectedEvents = ["visible", "hidden", "visible"];
+    assert_array_equals(window.events, expectedEvents, 'incorrect event order');
+  }, "minimize and restore on popup");
+}
+</script>

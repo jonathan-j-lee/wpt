@@ -6,6 +6,7 @@ import io
 import json
 import os
 import threading
+import time
 import traceback
 import socket
 import sys
@@ -797,14 +798,18 @@ class ActionContext:
         if self.context is None:
             return
 
+        time.sleep(2)
         self.initial_window = self.protocol.base.current_window
         self.logger.debug("Switching to window %s" % self.context)
         self.protocol.testdriver.switch_to_window(self.context, self.initial_window)
+        time.sleep(2)
 
     def __exit__(self, *args):
         if self.context is None:
             return
 
+        time.sleep(2)
         self.logger.debug("Switching back to initial window")
         self.protocol.base.set_window(self.initial_window)
         self.initial_window = None
+        time.sleep(2)
