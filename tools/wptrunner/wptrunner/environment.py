@@ -340,6 +340,7 @@ def wait_for_service(logger: StructuredLogger,
     which point ``socket.error`` is raised."""
     addr = (host, port)
     logger.debug(f"Trying to connect to {host}:{port}")
+    os.killpg(os.getpid(), signal.SIGINT)
     end = time.time() + timeout
     while end > time.time():
         if server_process is not None and server_process.poll() is not None:

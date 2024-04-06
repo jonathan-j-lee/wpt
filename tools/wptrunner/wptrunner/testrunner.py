@@ -1027,6 +1027,9 @@ class ManagerGroup:
                 manager_timeout = max(0, deadline - time.time())
             manager.join(manager_timeout)
 
+        for thread in threading.enumerate():
+            self.logger.info(f'thread: {thread}')
+
     def stop(self):
         """Set the stop flag so that all managers in the group stop as soon
         as possible"""
