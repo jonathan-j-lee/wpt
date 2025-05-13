@@ -86,11 +86,9 @@ class SystemWebViewShell(ChromeAndroidBrowserBase):
     ``wptrunner.webdriver.ChromeDriverServer``.
     """
 
-    def __init__(self, logger, binary=None, webdriver_binary="chromedriver", **kwargs):
+    def __init__(self, logger, *, binary=None, **kwargs):
         """Creates a new representation of Chrome.  The `binary` argument gives
         the browser binary to use for testing."""
-        super().__init__(logger,
-                         webdriver_binary=webdriver_binary,
-                         **kwargs)
+        super().__init__(logger, **kwargs)
         self.binary = binary
         self.wptserver_ports = _wptserve_ports
